@@ -2,14 +2,17 @@ require 'nokogiri'
 require 'open-uri'
 require 'fileutils'
 require_relative 'zip'
-require 'openssl'
 
-OpenSSL::SSL::VERIFY_PEER = OpenSSL::SSL::VERIFY_NONE
+# this is a shortcut if you have not configured OpenSSL on windows machines.
+# For more information, see: https://gist.github.com/fnichol/867550
+# require 'openssl'
+# OpenSSL::SSL::VERIFY_PEER = OpenSSL::SSL::VERIFY_NONE
 
 def request_url
   puts "Please enter the URL:"
   url = gets.chomp
   begin
+    binding.pry
     $page = Nokogiri::HTML(open(url))
   rescue
     puts "URL not Found!"
@@ -18,7 +21,8 @@ def request_url
 end
 
 def download_image(link)
-  download = open(link)
+  encoded_url = URI::encode(link.value) #this protects the scraper from invalid queries such as spaces in a url
+  download = open(encoded_url)
   IO.copy_stream(download, "#{$title}/#{download.base_uri.to_s.split('/')[-1]}")
 end
 
@@ -31,7 +35,6 @@ def create_temp_folder
 end
 
 #Run script
-
 request_url
 $title = $page.css('h3').text
 
@@ -45,9 +48,8 @@ loop do
 
     page = Nokogiri::HTML(open(current_page))
     image_source = page.css('img').attr('src')
-    encoded_url = URI::encode(image_source.value) #this protects the scraper from invalid queries such as spaces in a url
     puts "Downloading #{current_page}..."
-    download_image(encoded_url)
+    download_image(image_source)
     i += 1
   rescue
     puts "Download Complete"
