@@ -9,23 +9,10 @@ require_relative 'zip'
 # OpenSSL::SSL::VERIFY_PEER = OpenSSL::SSL::VERIFY_NONE
 
 class MangaScraper
-  def initialize
-    @link
-    @page
-    @title
-  end
-
-  def request_url
-    puts "Please enter the URL:"
-    url = gets.chomp
-    begin
-      @page = Nokogiri::HTML(open(url))
-      @title = @page.css('h3').text
-      @link = @page.css('a[title=Read]').attr('href').value + "page/"
-    rescue
-      puts "Invalid URL!"
-      request_url
-    end
+  def initialize(url)
+    @page = Nokogiri::HTML(open(url))
+    @title = @page.css('h3').text
+    @link = @page.css('a[title=Read]').attr('href').value + "page/"
   end
 
   def create_temp_folder
@@ -51,18 +38,17 @@ class MangaScraper
   end
 
   def run
-    request_url
     create_temp_folder
+    page_number = 1
 
-    i = 1
     loop do
       begin
-        current_page = @link + i.to_s
+        current_page = @link + page_number.to_s
         page = Nokogiri::HTML(open(current_page))
         image_source = page.css('img').attr('src')
         puts "Downloading #{current_page}..."
         download_image(image_source)
-        i += 1
+        page_number += 1
       rescue
         puts "Download Complete!"
         break
@@ -71,9 +57,19 @@ class MangaScraper
 
     zip_files
   end
-
-
 end
 
-scraper = MangaScraper.new()
-scraper.run
+def request_url
+  puts "Please enter the URL (or type 'exit' to quit):"
+  url = gets.chomp
+  return if url == "exit"
+  begin
+    scraper = MangaScraper.new(url)
+    scraper.run
+  rescue
+    puts "Invalid URL!"
+  end
+  request_url
+end
+
+request_url
