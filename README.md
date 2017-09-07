@@ -1,0 +1,2 @@
+## Manga Scraper
+This is a simple scraper for a particular manga website that I made because it did not have a download button. It only works for that particular website, which I won't name in case there are any legal reasons that I am not aware of against using this. This app prompts for a link to the chapter, then goes through every page in that chapter, downloads it into a folder, and zips it up. Anyways, ultimately this was a fun learning exercise for Nokogiri, Fileutils, Open-uri, and Rubyzip.
